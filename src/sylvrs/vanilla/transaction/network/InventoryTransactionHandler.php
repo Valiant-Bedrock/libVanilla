@@ -4,9 +4,7 @@
 namespace sylvrs\vanilla\transaction\network;
 
 
-use pocketmine\block\inventory\EnchantInventory;
 use pocketmine\inventory\transaction\action\InventoryAction;
-use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\TransactionException;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\network\mcpe\convert\TypeConverter;
@@ -19,6 +17,7 @@ use pocketmine\utils\AssumptionFailedError;
 use sylvrs\vanilla\inventory\action\AnvilAction;
 use sylvrs\vanilla\inventory\action\EnchantingAction;
 use sylvrs\vanilla\inventory\AnvilInventory;
+use sylvrs\vanilla\inventory\EnchantInventory;
 use sylvrs\vanilla\inventory\transaction\AnvilTransaction;
 use sylvrs\vanilla\inventory\transaction\EnchantingTransaction;
 use sylvrs\vanilla\item\enchantment\EnchantmentManager;
@@ -77,7 +76,6 @@ class InventoryTransactionHandler extends PacketHandler {
 	 */
 	public function handleAnvil(array $actions): void {
 		$player = $this->session->getPlayer();
-		$logger = VanillaBase::getInstance()->getLogger();
 
 		$anvilTransaction = $this->session->getAnvilTransaction();
 		if($anvilTransaction === null) {
@@ -91,26 +89,23 @@ class InventoryTransactionHandler extends PacketHandler {
 
 		$inventoryManager = $player->getNetworkSession()->getInvManager();
 		if($inventoryManager === null) {
-			$logger->debug("Inventory manager is null");
 			$this->session->removeAnvilTransaction();
 			return;
 		}
 
 		try {
 			$anvilTransaction->validate();
-		} catch(TransactionValidationException $exception) {
-			$logger->info("Validation exception: {$exception->getMessage()}");
+		} catch(TransactionValidationException) {
 			return;
 		}
 
 		try {
 			$inventoryManager->onTransactionStart($anvilTransaction);
 			$anvilTransaction->execute();
-		} catch(TransactionValidationException $exception) {
-			$logger->debug("Anvil execution exception: {$exception->getMessage()}");
-			$this->sync($anvilTransaction, $inventoryManager);
+		} catch(TransactionValidationException) {
+			$this->sync($inventoryManager);
+
 		} finally {
-			$logger->debug("Removing anvil transaction after execution");
 			$this->session->removeAnvilTransaction();
 		}
 	}
@@ -157,7 +152,7 @@ class InventoryTransactionHandler extends PacketHandler {
 			$inventoryManager->onTransactionStart($enchantingTransaction);
 			$enchantingTransaction->execute();
 		} catch(TransactionException) {
-			$this->sync($enchantingTransaction, $inventoryManager);
+			$this->sync($inventoryManager);
 		} finally {
 			// Enchanting is done
 			$this->session->removeEnchantingTransaction();
@@ -186,7 +181,7 @@ class InventoryTransactionHandler extends PacketHandler {
 					EnchantmentManager::SOURCE_TYPE_ENCHANT_INPUT,
 					EnchantmentManager::SOURCE_TYPE_ENCHANT_MATERIAL,
 					NetworkInventoryAction::SOURCE_TYPE_ENCHANT_OUTPUT =>
-						new EnchantingAction($currentInventory, $slot, $oldItem, $newItem, $action->windowId),
+						$currentInventory instanceof EnchantInventory ? new EnchantingAction($currentInventory, $slot, $oldItem, $newItem, $action->windowId) : null,
 					NetworkInventoryAction::SOURCE_TYPE_ANVIL_RESULT =>
 						$currentInventory instanceof AnvilInventory ? new AnvilAction($currentInventory, $slot, $oldItem, $newItem, $action->windowId) : null,
 					default => null
@@ -195,7 +190,7 @@ class InventoryTransactionHandler extends PacketHandler {
 		return null;
 	}
 
-	public function sync(InventoryTransaction $transaction, InventoryManager $manager): void {
+	public function sync(InventoryManager $manager): void {
 		$manager->syncAll();
 	}
 }

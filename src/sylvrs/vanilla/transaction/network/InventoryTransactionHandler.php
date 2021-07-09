@@ -22,12 +22,12 @@ use sylvrs\vanilla\inventory\AnvilInventory;
 use sylvrs\vanilla\inventory\transaction\AnvilTransaction;
 use sylvrs\vanilla\inventory\transaction\EnchantingTransaction;
 use sylvrs\vanilla\item\enchantment\EnchantmentManager;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 use sylvrs\vanilla\VanillaBase;
 
 class InventoryTransactionHandler extends PacketHandler {
 
-	public function __construct(TransactionSession $session) {
+	public function __construct(TransactionManager $session) {
 		parent::__construct(InventoryTransactionPacket::class, $session);
 	}
 	public function handle(ServerboundPacket|InventoryTransactionPacket $packet): bool {

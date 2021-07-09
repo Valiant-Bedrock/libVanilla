@@ -29,8 +29,9 @@ class EnchantingAction extends InventoryAction {
 	}
 
 	public function validate(Player $source): void {
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($source);
-		if(!$session->hasEnchantingTransaction()) {
+		$session = VanillaBase::getInstance()->getSessionManager()->get($source);
+		$transactionManager = $session->getTransactionManager();
+		if(!$transactionManager->hasEnchantingTransaction()) {
 			throw new TransactionValidationException("Player doesn't have an existing enchanting transaction");
 		}
 		if(!$this->inventory->slotExists($this->inventorySlot)){
@@ -49,7 +50,7 @@ class EnchantingAction extends InventoryAction {
 			if($cost > $source->getXpManager()->getXpLevel()) {
 				throw new TransactionValidationException("Player XP Level is lower than cost");
 			}
-			$transaction = $session->getEnchantingTransaction();
+			$transaction = $transactionManager->getEnchantingTransaction();
 			$transaction->setCost($cost);
 		}
 	}
@@ -79,13 +80,13 @@ class EnchantingAction extends InventoryAction {
 	 * Sets the item into the target inventory.
 	 */
 	public function execute(Player $source) : void {
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($source);
+		$session = VanillaBase::getInstance()->getSessionManager()->get($source);
 		if(!$this->inventory instanceof EnchantInventory) {
 			VanillaBase::getInstance()->getLogger()->debug("Inventory not instanceof EnchantInventory");
 			return;
 		}
 
-		$transaction = $session->getEnchantingTransaction();
+		$transaction = $session->getTransactionManager()->getEnchantingTransaction();
 		switch($this->getType()) {
 			case EnchantmentManager::SOURCE_TYPE_ENCHANT_INPUT:
 				// :thonkies:

@@ -6,12 +6,12 @@ namespace sylvrs\vanilla\transaction\network;
 
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 use sylvrs\vanilla\VanillaBase;
 
 class ActorEventHandler extends PacketHandler {
 
-	public function __construct(TransactionSession $session) {
+	public function __construct(TransactionManager $session) {
 		parent::__construct(ActorEventPacket::class, $session);
 	}
 

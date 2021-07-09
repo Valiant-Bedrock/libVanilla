@@ -23,8 +23,8 @@ class EnchantInventory extends \pocketmine\block\inventory\EnchantInventory impl
 	public function onClose(Player $who): void {
 		$this->setMaterial(ItemFactory::air());
 		parent::onClose($who);
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($who);
-		$session->removeEnchantingTransaction();
+		$session = VanillaBase::getInstance()->getSessionManager()->get($who);
+		$session->getTransactionManager()->removeEnchantingTransaction();
 	}
 
 	public function getTarget(): Item {

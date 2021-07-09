@@ -6,11 +6,11 @@ namespace sylvrs\vanilla\transaction\network;
 
 use pocketmine\network\mcpe\protocol\FilterTextPacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 
 class FilterTextHandler extends PacketHandler {
 
-	public function __construct(TransactionSession $session) {
+	public function __construct(TransactionManager $session) {
 		parent::__construct(FilterTextPacket::class, $session);
 	}
 

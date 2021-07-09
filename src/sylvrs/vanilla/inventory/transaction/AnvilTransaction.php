@@ -21,7 +21,7 @@ use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use sylvrs\vanilla\inventory\AnvilInventory;
 use sylvrs\vanilla\item\enchantment\IncompatibleEnchantMap;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 
 class AnvilTransaction extends InventoryTransaction {
 
@@ -38,7 +38,7 @@ class AnvilTransaction extends InventoryTransaction {
 
 	protected ?Item $result = null;
 
-	public function __construct(Player $source, protected TransactionSession $session, array $actions = []) {
+	public function __construct(Player $source, protected TransactionManager $session, array $actions = []) {
 		parent::__construct($source, $actions);
 	}
 
@@ -158,15 +158,17 @@ class AnvilTransaction extends InventoryTransaction {
 		}
 	}
 
-	public function calculateResult(Durable $target, ?Item $sacrifice = null): Item {
+	public function calculateResult(Item $target, ?Item $sacrifice = null): Item {
 		$output = clone $target;
 		if($this->name !== "") {
 			$output->setCustomName($this->name);
 		}
-		$uses = $this->getUses($target);
+		$uses = $this->getUses($output);
 		if($sacrifice !== null) {
-			$output->setDamage($this->calculateDurability($target, $sacrifice));
-			if($sacrifice instanceof Durable && $sacrifice->equals($target, false, false)) {
+			if($output instanceof Durable) {
+				$output->setDamage($this->calculateDurability($output, $sacrifice));
+			}
+			if($sacrifice->equals($output, false, false)) {
 				if($sacrifice->hasEnchantments()) {
 					foreach($sacrifice->getEnchantments() as $sacrificeEnchantment) {
 						$enchantmentType = $sacrificeEnchantment->getType();
@@ -176,7 +178,7 @@ class AnvilTransaction extends InventoryTransaction {
 							$currentLevel = $output->getEnchantmentLevel($enchantmentType);
 							$level = $sacrificeLevel > $currentLevel ? $sacrificeLevel : ($currentLevel === $sacrificeLevel ? $currentLevel + 1 : $currentLevel);
 							$output->addEnchantment(new EnchantmentInstance($enchantmentType, min($level, $enchantmentType->getMaxLevel())));
-						} elseif($this->isCompatible($target, $enchantmentType)) {
+						} elseif($this->isCompatible($output, $enchantmentType)) {
 							$output->addEnchantment(clone $sacrificeEnchantment);
 						}
 					}

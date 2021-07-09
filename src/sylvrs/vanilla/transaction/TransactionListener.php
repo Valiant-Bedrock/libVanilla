@@ -5,22 +5,14 @@ namespace sylvrs\vanilla\transaction;
 
 
 use pocketmine\event\inventory\InventoryTransactionEvent;
-use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use sylvrs\vanilla\inventory\EnchantInventory;
-use sylvrs\vanilla\VanillaBase;
+use sylvrs\vanilla\listener\VanillaListener;
 
-class TransactionListener implements Listener {
-
-	public function __construct(protected VanillaBase $plugin) {}
-
-	public function handleQuit(PlayerQuitEvent $event): void {
-		$this->plugin->getTransactionManager()->delete($event->getPlayer());
-	}
+class TransactionListener extends VanillaListener {
 
 	public function handleDataPacketReceive(DataPacketReceiveEvent $event): void {
 		// check if we have a valid network session & connected player before deciding to listen to packets
@@ -30,15 +22,14 @@ class TransactionListener implements Listener {
 		if(!($player = $networkSession->getPlayer()) instanceof Player || !$player->isOnline()) {
 			return;
 		}
-		// get or create a transaction session to attach to the player
-		$session = $this->plugin->getTransactionManager()->get($player);
+		// get the player session
+		$session = $this->plugin->getSessionManager()->get($player);
+		$transactionManager = $session->getTransactionManager();
 
-		if($session->shouldHandle()) {
+		if($transactionManager->shouldHandle()) {
 			$packet = $event->getPacket();
-			if($session->hasHandler($packet)) {
-				$handler = $session->getHandler($packet);
-				// $player->getLogger()->debug("Attempting to handle {$packet->getName()}");
-
+			if($transactionManager->hasHandler($packet)) {
+				$handler = $transactionManager->getHandler($packet);
 				if($handler->handle($packet)) {
 					$event->cancel();
 				}

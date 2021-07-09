@@ -27,9 +27,10 @@ class AnvilAction extends InventoryAction {
 	}
 
 	public function validate(Player $source): void {
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($source);
+		$session = VanillaBase::getInstance()->getSessionManager()->get($source);
+		$transactionManger = $session->getTransactionManager();
 
-		if(!$session->hasAnvilTransaction()) {
+		if(!$transactionManger->hasAnvilTransaction()) {
 			throw new TransactionValidationException("Player doesn't have an existing enchanting transaction");
 		}
 		if(!$this->inventory->slotExists($this->inventorySlot)){
@@ -37,20 +38,21 @@ class AnvilAction extends InventoryAction {
 		}
 		switch($this->getType()) {
 			case NetworkInventoryAction::SOURCE_TYPE_ANVIL_RESULT:
-				$session->getAnvilTransaction()->setResult($this->sourceItem);
+				$transactionManger->getAnvilTransaction()->setResult($this->sourceItem);
 				break;
 		}
 	}
 
 	public function execute(Player $source): void {
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($source);
-		if(!$session->hasAnvilTransaction()) {
+		$session = VanillaBase::getInstance()->getSessionManager()->get($source);
+		$transactionManger = $session->getTransactionManager();
+		if(!$transactionManger->hasAnvilTransaction()) {
 			throw new TransactionCancelledException("Player doesn't have an existing enchanting transaction");
 		}
 
 		switch($this->getType()) {
 			case NetworkInventoryAction::SOURCE_TYPE_ANVIL_RESULT:
-				$session->getAnvilTransaction()->onSuccess($this->inventory);
+				$transactionManger->getAnvilTransaction()->onSuccess($this->inventory);
 				return;
 		}
 	}

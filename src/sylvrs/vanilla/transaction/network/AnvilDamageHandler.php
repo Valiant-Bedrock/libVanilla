@@ -6,12 +6,12 @@ namespace sylvrs\vanilla\transaction\network;
 
 use pocketmine\network\mcpe\protocol\AnvilDamagePacket;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 use sylvrs\vanilla\VanillaBase;
 
 class AnvilDamageHandler extends PacketHandler {
 
-	public function __construct(TransactionSession $session) {
+	public function __construct(TransactionManager $session) {
 		parent::__construct(AnvilDamagePacket::class, $session);
 	}
 

@@ -23,8 +23,8 @@ class AnvilInventory extends \pocketmine\block\inventory\AnvilInventory implemen
 
 	public function onClose(Player $who): void {
 		parent::onClose($who);
-		$session = VanillaBase::getInstance()->getTransactionManager()->get($who);
-		$session->removeAnvilTransaction();
+		$session = VanillaBase::getInstance()->getSessionManager()->get($who);
+		$session->getTransactionManager()->removeAnvilTransaction();
 	}
 
 	public function getTarget(): Item {

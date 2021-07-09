@@ -5,11 +5,11 @@ namespace sylvrs\vanilla\transaction\network;
 
 
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use sylvrs\vanilla\transaction\TransactionSession;
+use sylvrs\vanilla\transaction\TransactionManager;
 
 abstract class PacketHandler {
 
-	public function __construct(protected string $className, protected TransactionSession $session) {
+	public function __construct(protected string $className, protected TransactionManager $session) {
 		$this->className = basename(str_replace("\\", "/", $className));
 	}
 
@@ -17,7 +17,7 @@ abstract class PacketHandler {
 		return $this->className;
 	}
 
-	public function getSession(): TransactionSession {
+	public function getSession(): TransactionManager {
 		return $this->session;
 	}
 

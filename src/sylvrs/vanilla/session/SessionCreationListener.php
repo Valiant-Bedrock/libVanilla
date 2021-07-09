@@ -5,7 +5,7 @@ namespace sylvrs\vanilla\session;
 
 
 use pocketmine\event\player\PlayerQuitEvent;
-use sylvrs\vanilla\listener\VanillaListener;
+use sylvrs\vanilla\VanillaListener;
 
 class SessionCreationListener extends VanillaListener {
 

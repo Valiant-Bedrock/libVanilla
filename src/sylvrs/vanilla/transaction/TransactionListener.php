@@ -10,7 +10,7 @@ use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use sylvrs\vanilla\inventory\EnchantInventory;
-use sylvrs\vanilla\listener\VanillaListener;
+use sylvrs\vanilla\VanillaListener;
 
 class TransactionListener extends VanillaListener {
 

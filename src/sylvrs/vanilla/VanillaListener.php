@@ -1,7 +1,7 @@
 <?php
 
 
-namespace sylvrs\vanilla\listener;
+namespace sylvrs\vanilla;
 
 
 use pocketmine\event\HandlerListManager;

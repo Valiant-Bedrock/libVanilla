@@ -24,7 +24,6 @@ class SessionManager {
 
 	public function delete(Player $player): void {
 		if(isset($this->sessions[$player->getUniqueId()->toString()])) {
-
 			$session = $this->get($player);
 			$session->end();
 			$this->plugin->getLogger()->debug("Deleting {$player->getName()}'s session...");

@@ -4,15 +4,26 @@
 namespace sylvrs\vanilla\transaction;
 
 
+use JetBrains\PhpStorm\Pure;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
 use sylvrs\vanilla\inventory\EnchantInventory;
+use sylvrs\vanilla\session\SessionManager;
+use sylvrs\vanilla\VanillaBase;
 use sylvrs\vanilla\VanillaListener;
 
 class TransactionListener extends VanillaListener {
+
+	protected SessionManager $sessionManager;
+
+	#[Pure]
+	public function __construct(VanillaBase $plugin) {
+		parent::__construct($plugin);
+		$this->sessionManager = $plugin->getSessionManager();
+	}
 
 	public function handleDataPacketReceive(DataPacketReceiveEvent $event): void {
 		// check if we have a valid network session & connected player before deciding to listen to packets
@@ -23,7 +34,7 @@ class TransactionListener extends VanillaListener {
 			return;
 		}
 		// get the player session
-		$session = $this->plugin->getSessionManager()->get($player);
+		$session = $this->sessionManager->get($player);
 		$transactionManager = $session->getTransactionManager();
 
 		if($transactionManager->shouldHandle()) {

@@ -19,8 +19,6 @@ use sylvrs\vanilla\VanillaBase;
 
 class TransactionManager {
 
-	protected TransactionListener $listener;
-
 	private ?AnvilTransaction $anvilTransaction = null;
 	private ?EnchantingTransaction $enchantingTransaction = null;
 
@@ -28,7 +26,6 @@ class TransactionManager {
 	protected array $handlers = [];
 
 	public function __construct(protected Player $player) {
-		$this->listener = new TransactionListener(VanillaBase::getInstance(), $player);
 		$this->addHandlers(
 			new ActorEventHandler($this),
 			new AnvilDamageHandler($this),

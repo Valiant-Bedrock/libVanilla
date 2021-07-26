@@ -164,20 +164,6 @@ class AnvilTransaction extends InventoryTransaction {
 		}
 	}
 
-	private function logItem(Item $item): void {
-		$logger = Server::getInstance()->getLogger();
-		$logger->info("---- Item ({$item->getName()}) ----");
-		$logger->info("  - ID: {$item->getId()}");
-		if($item instanceof Durable) $logger->info("  - Damage: {$item->getDamage()}");
-		if($item->hasEnchantments()) {
-			$logger->info("  - Enchantments");
-			foreach ($item->getEnchantments() as $enchantment) {
-				$logger->info("    * {$enchantment->getType()->getName()} - {$enchantment->getLevel()}");
-			}
-		}
-		$logger->info("--------------");
-	}
-
 	public function calculateResult(Item $target, ?Item $sacrifice = null): Item {
 		$output = clone $target;
 		if($this->name !== "") {

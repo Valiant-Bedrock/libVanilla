@@ -23,7 +23,7 @@ use pocketmine\item\Tool;
 use pocketmine\item\ToolTier;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
-use pocketmine\Server;
+use sylvrs\vanilla\data\CustomItems;
 use sylvrs\vanilla\inventory\AnvilInventory;
 use sylvrs\vanilla\item\EnchantedBook;
 use sylvrs\vanilla\item\enchantment\IncompatibleEnchantMap;
@@ -82,6 +82,36 @@ class AnvilTransaction extends InventoryTransaction {
 
 	public function hasResult(): bool {
 		return $this->result instanceof Item && !$this->result->isNull();
+	}
+
+	public function getRepairCost(Item $item): int {
+		return $item->getNamedTag()->getInt(self::COST_TAG, 0);
+	}
+
+	public function setRepairCost(Item $item, int $cost): void {
+		if($cost <= 0) {
+			$item->getNamedTag()->removeTag(self::COST_TAG);
+			return;
+		}
+		$item->getNamedTag()->setInt(self::COST_TAG, $cost);
+	}
+
+	public function getUses(Item $item): int {
+		if(($uses = $item->getNamedTag()->getInt(self::USES_TAG, -1)) !== -1) {
+			return $uses;
+		}
+		$repairCost = $this->getRepairCost($item);
+		$uses = log($repairCost + 1) / log(2);
+		$item->getNamedTag()->setInt(self::USES_TAG, $uses);
+		return $uses;
+	}
+
+	public function setUses(Item $item, int $uses): void {
+		if($uses <= 0) {
+			$item->getNamedTag()->removeTag(self::USES_TAG);
+			return;
+		}
+		$item->getNamedTag()->setInt(self::USES_TAG, $uses);
 	}
 
 	public function validate(): void {
@@ -157,7 +187,6 @@ class AnvilTransaction extends InventoryTransaction {
 		if(!$this->hasResult()) {
 			throw new TransactionValidationException("Transaction has no pending result");
 		}
-		//TODO: We don't always have a durable item... Anything can be renamed
 		$result = $this->calculateResult($this->target, $this->sacrifice);
 		$this->setUses($this->result, $this->getUses($result));
 		if(!$result->equalsExact($this->result)) {
@@ -167,6 +196,7 @@ class AnvilTransaction extends InventoryTransaction {
 
 	public function calculateResult(Item $target, ?Item $sacrifice = null): Item {
 		$output = clone $target;
+
 		if($this->name !== "") {
 			$output->setCustomName($this->name);
 		}
@@ -178,23 +208,26 @@ class AnvilTransaction extends InventoryTransaction {
 			if($sacrifice->equals($output, false, false) || ($sacrifice->getId() === ItemIds::ENCHANTED_BOOK)) {
 				if($sacrifice->hasEnchantments()) {
 					foreach($sacrifice->getEnchantments() as $sacrificeEnchantment) {
-						$enchantmentType = $sacrificeEnchantment->getType();
-						if($output->hasEnchantment($enchantmentType)) {
+						$type = $sacrificeEnchantment->getType();
+						if($output->hasEnchantment($type)) {
 							$sacrificeLevel = $sacrificeEnchantment->getLevel();
-							$currentLevel = $output->getEnchantmentLevel($enchantmentType);
-							$level = $sacrificeLevel > $currentLevel ? $sacrificeLevel : ($currentLevel === $sacrificeLevel ? $currentLevel + 1 : $currentLevel);
-							$output->addEnchantment(new EnchantmentInstance($enchantmentType, min($level, $enchantmentType->getMaxLevel())));
-						} elseif($this->isCompatible($output, $enchantmentType) && $this->canApply($output, $enchantmentType)) {
-							$output->addEnchantment(clone $sacrificeEnchantment);
+							$outputLevel = $output->getEnchantmentLevel($type);
+							$level = $sacrificeLevel > $outputLevel ? $sacrificeLevel : ($outputLevel === $sacrificeLevel ? $outputLevel + 1 : $outputLevel);
+							$enchantment = new EnchantmentInstance($type, min($level, $type->getMaxLevel()));
+						} elseif($this->isCompatible($output, $type) && $this->canApply($output, $type)) {
+							$enchantment = clone $sacrificeEnchantment;
+						} else {
+							continue;
 						}
+						$output->addEnchantment($enchantment);
 					}
 				}
 				$uses = max($uses, $this->getUses($sacrifice));
 			}
 		}
-		$newUses = $uses + 1;
-		$this->setUses($output, $newUses);
-		$cost = $this->calculateRepairCost($newUses);
+		$uses += 1;
+		$this->setUses($output, $uses);
+		$cost = $this->calculateRepairCost($uses);
 		$this->setRepairCost($output, $cost);
 		return $output;
 	}
@@ -203,13 +236,11 @@ class AnvilTransaction extends InventoryTransaction {
 		$durability = $target->getDamage();
 		if($material instanceof Durable && $material->equals($target, false, false)) {
 			$durability -= $material->getDamage();
-		} else {
-			$repairItem = $this->getRepairItem($target);
-			if($material->equals($repairItem, true, false)) {
-				$reductionValue = (int) floor($durability * 0.12);
-				for($i = 0; $i < $material->getCount(); $i++) {
-					$durability -= $reductionValue;
-				}
+		} else if($material->equals($this->getRepairItem($target), true, false)) {
+			$reductionValue = (int) floor($durability * 0.12);
+			$count = $material->getCount();
+			while($count-- > 0) {
+				$durability -= $reductionValue;
 			}
 		}
 		return max(0, $durability);
@@ -258,9 +289,7 @@ class AnvilTransaction extends InventoryTransaction {
 	public function shouldRepair(Durable $target, Item $sacrifice): bool {
 		if($target->getDamage() <= 0) {
 			return false;
-		}
-
-		if($target->equals($sacrifice, false, false)) {
+		} else if($target->equals($sacrifice, false, false)) {
 			return true;
 		}
 		$repairItem = $this->getRepairItem($target);
@@ -277,56 +306,22 @@ class AnvilTransaction extends InventoryTransaction {
 				ToolTier::DIAMOND()->id() => VanillaItems::DIAMOND(),
 				default => null
 			};
-		} elseif($target instanceof Armor) {
-			return match ($target->getId()) {
-				ItemIds::LEATHER_CAP, ItemIds::LEATHER_TUNIC, ItemIds::LEATHER_PANTS, ItemIds::LEATHER_BOOTS => VanillaItems::LEATHER(),
-				ItemIds::IRON_HELMET, ItemIds::IRON_CHESTPLATE, ItemIds::IRON_LEGGINGS, ItemIds::IRON_BOOTS => VanillaItems::IRON_INGOT(),
-				ItemIds::GOLD_HELMET, ItemIds::GOLD_CHESTPLATE, ItemIds::GOLD_LEGGINGS, ItemIds::GOLD_BOOTS => VanillaItems::GOLD_INGOT(),
-				ItemIds::DIAMOND_HELMET, ItemIds::DIAMOND_CHESTPLATE, ItemIds::DIAMOND_LEGGINGS, ItemIds::DIAMOND_BOOTS => VanillaItems::DIAMOND(),
-				default => null,
-			};
 		}
-		return null;
-	}
-
-	public function getRepairCost(Item $item): int {
-		return $item->getNamedTag()->getInt(self::COST_TAG, 0);
-	}
-
-	public function setRepairCost(Item $item, int $cost): void {
-		if($cost <= 0) {
-			$item->getNamedTag()->removeTag(self::COST_TAG);
-			return;
-		}
-		$item->getNamedTag()->setInt(self::COST_TAG, $cost);
-	}
-
-	/*
-	 * We should probably save the Uses tag if we have it, and if not,
-	 * we can save the repair cost
-	 */
-	public function getUses(Item $item): int {
-		if(($uses = $item->getNamedTag()->getInt(self::USES_TAG, -1)) !== -1) {
-			return $uses;
-		}
-		$repairCost = $this->getRepairCost($item);
-		$uses = log($repairCost + 1) / log(2);
-		$item->getNamedTag()->setInt(self::USES_TAG, $uses);
-		return $uses;
-	}
-
-	public function setUses(Item $item, int $uses): void {
-		if($uses <= 0) {
-			$item->getNamedTag()->removeTag(self::USES_TAG);
-			return;
-		}
-		$item->getNamedTag()->setInt(self::USES_TAG, $uses);
+		return match ($target->getId()) {
+			ItemIds::LEATHER_CAP, ItemIds::LEATHER_TUNIC, ItemIds::LEATHER_PANTS, ItemIds::LEATHER_BOOTS => VanillaItems::LEATHER(),
+			ItemIds::IRON_HELMET, ItemIds::IRON_CHESTPLATE, ItemIds::IRON_LEGGINGS, ItemIds::IRON_BOOTS => VanillaItems::IRON_INGOT(),
+			ItemIds::GOLD_HELMET, ItemIds::GOLD_CHESTPLATE, ItemIds::GOLD_LEGGINGS, ItemIds::GOLD_BOOTS => VanillaItems::GOLD_INGOT(),
+			ItemIds::DIAMOND_HELMET, ItemIds::DIAMOND_CHESTPLATE, ItemIds::DIAMOND_LEGGINGS, ItemIds::DIAMOND_BOOTS => VanillaItems::DIAMOND(),
+			// TODO: Netherite items when they're supported
+			ItemIds::ELYTRA => CustomItems::PHANTOM_MEMBRANE(),
+			ItemIds::TURTLE_HELMET => VanillaItems::SCUTE(),
+			default => null
+		};
 	}
 
 	public function onSuccess(AnvilInventory $inventory): void {
-		$cost = $this->calculateTransactionCost($this->target, $this->sacrifice);
 		// used to compare what the client sends us
-		$this->cost = $cost;
+		$this->cost = $this->calculateTransactionCost($this->target, $this->sacrifice);
 		if(!$this->source->isCreative()) {
 			$this->source->getXpManager()->subtractXpLevels($this->cost);
 		}

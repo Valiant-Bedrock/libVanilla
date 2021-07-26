@@ -4,5 +4,5 @@ As this project was created specifically to support anvils/enchanting, those are
 Any contributions are *greatly* appreciated.
 
 ## Current Feature Set
-[x] Anvils
-[x] Enchanting
+- [x] Anvils
+- [x] Enchanting

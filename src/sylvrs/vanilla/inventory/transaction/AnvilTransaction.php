@@ -121,12 +121,13 @@ class AnvilTransaction extends InventoryTransaction {
 
 	/**
 	 * Anvil Calculations:
-	 * RepairCost = (2^x - 1, where x is Uses)
-	 * Uses = sqrt(RepairCost + 1)
-	 * If player is in survival, max cost of an anvil is 39 levels,
-	 * otherwise, it's not capped
+	 * RepairCost = 2^x - 1, where x is Uses
+	 * Uses = log(x + 1) / log(2), where x is RepairCost
 	 *
-	 * Renaming *always* costs one level
+	 * If the player is in survival, the max cost of an anvil is 39 levels.
+	 * Otherwise, it's not capped.
+	 *
+	 * Renaming *always* costs one level.
 	 */
 	public function calculateTransactionCost(Item $target, ?Item $sacrifice = null): int {
 		$targetUses = $this->getUses($target);

@@ -4,8 +4,9 @@
 namespace sylvrs\vanilla\inventory\transaction;
 
 
-use JetBrains\PhpStorm\Pure;
+use pocketmine\block\BlockToolType;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\TransactionValidationException;
@@ -13,13 +14,18 @@ use pocketmine\item\Armor;
 use pocketmine\item\Durable;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\item\enchantment\ItemFlags;
 use pocketmine\item\Item;
 use pocketmine\item\ItemIds;
+use pocketmine\item\Sword;
 use pocketmine\item\TieredTool;
+use pocketmine\item\Tool;
 use pocketmine\item\ToolTier;
 use pocketmine\item\VanillaItems;
 use pocketmine\player\Player;
+use pocketmine\Server;
 use sylvrs\vanilla\inventory\AnvilInventory;
+use sylvrs\vanilla\item\EnchantedBook;
 use sylvrs\vanilla\item\enchantment\IncompatibleEnchantMap;
 use sylvrs\vanilla\transaction\TransactionManager;
 
@@ -158,6 +164,20 @@ class AnvilTransaction extends InventoryTransaction {
 		}
 	}
 
+	private function logItem(Item $item): void {
+		$logger = Server::getInstance()->getLogger();
+		$logger->info("---- Item ({$item->getName()}) ----");
+		$logger->info("  - ID: {$item->getId()}");
+		if($item instanceof Durable) $logger->info("  - Damage: {$item->getDamage()}");
+		if($item->hasEnchantments()) {
+			$logger->info("  - Enchantments");
+			foreach ($item->getEnchantments() as $enchantment) {
+				$logger->info("    * {$enchantment->getType()->getName()} - {$enchantment->getLevel()}");
+			}
+		}
+		$logger->info("--------------");
+	}
+
 	public function calculateResult(Item $target, ?Item $sacrifice = null): Item {
 		$output = clone $target;
 		if($this->name !== "") {
@@ -168,17 +188,16 @@ class AnvilTransaction extends InventoryTransaction {
 			if($output instanceof Durable) {
 				$output->setDamage($this->calculateDurability($output, $sacrifice));
 			}
-			if($sacrifice->equals($output, false, false)) {
+			if($sacrifice->equals($output, false, false) || ($sacrifice->getId() === ItemIds::ENCHANTED_BOOK)) {
 				if($sacrifice->hasEnchantments()) {
 					foreach($sacrifice->getEnchantments() as $sacrificeEnchantment) {
 						$enchantmentType = $sacrificeEnchantment->getType();
-
 						if($output->hasEnchantment($enchantmentType)) {
 							$sacrificeLevel = $sacrificeEnchantment->getLevel();
 							$currentLevel = $output->getEnchantmentLevel($enchantmentType);
 							$level = $sacrificeLevel > $currentLevel ? $sacrificeLevel : ($currentLevel === $sacrificeLevel ? $currentLevel + 1 : $currentLevel);
 							$output->addEnchantment(new EnchantmentInstance($enchantmentType, min($level, $enchantmentType->getMaxLevel())));
-						} elseif($this->isCompatible($output, $enchantmentType)) {
+						} elseif($this->isCompatible($output, $enchantmentType) && $this->canApply($output, $enchantmentType)) {
 							$output->addEnchantment(clone $sacrificeEnchantment);
 						}
 					}
@@ -193,25 +212,60 @@ class AnvilTransaction extends InventoryTransaction {
 		return $output;
 	}
 
-	/**
-	 * TODO: Multiple material items for repair. This only accepts one right now, and will reject it if done otherwise
-	 */
-	#[Pure]
 	public function calculateDurability(Durable $target, Item $material): int {
 		$durability = $target->getDamage();
-		if($material instanceof Durable) {
+		if($material instanceof Durable && $material->equals($target, false, false)) {
 			$durability -= $material->getDamage();
+		} else {
+			$repairItem = $this->getRepairItem($target);
+			if($material->equals($repairItem, true, false)) {
+				$reductionValue = (int) floor($durability * 0.12);
+				for($i = 0; $i < $material->getCount(); $i++) {
+					$durability -= $reductionValue;
+				}
+			}
 		}
-		return max(0, $durability - ($durability * 1.12));
+		return max(0, $durability);
 	}
 
-	public function isCompatible(Durable $target, Enchantment $enchantment): bool {
+	public function isCompatible(Item $target, Enchantment $enchantment): bool {
 		foreach($target->getEnchantments() as $targetEnchantment) {
 			if(IncompatibleEnchantMap::isIncompatible($targetEnchantment->getType(), $enchantment)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * TODO: This should be better thought out,
+	 * but as not all items are implemented,
+	 * this should do fine, for now
+	 */
+	public function canApply(Item $target, Enchantment $enchantment): bool {
+		if($target instanceof EnchantedBook) {
+			// books can have all enchants applied
+			return true;
+		} elseif($target instanceof Armor) {
+			$flag = match ($target->getArmorSlot()) {
+				ArmorInventory::SLOT_HEAD => ItemFlags::HEAD,
+				ArmorInventory::SLOT_CHEST => ItemFlags::TORSO,
+				ArmorInventory::SLOT_LEGS => ItemFlags::LEGS,
+				ArmorInventory::SLOT_FEET => ItemFlags::FEET
+			};
+			return $enchantment->hasPrimaryItemType($flag);
+		} elseif($target instanceof Sword) {
+			return $enchantment->hasPrimaryItemType(ItemFlags::SWORD);
+		} elseif($target instanceof Tool) {
+			$flag = match ($target->getBlockToolType()) {
+				BlockToolType::SHOVEL => ItemFlags::SHOVEL,
+				BlockToolType::PICKAXE => ItemFlags::PICKAXE,
+				BlockToolType::AXE => ItemFlags::AXE,
+				default => ItemFlags::TOOL
+			};
+			return $enchantment->hasPrimaryItemType($flag);
+		}
+		return false;
 	}
 
 	public function shouldRepair(Durable $target, Item $sacrifice): bool {
@@ -222,8 +276,13 @@ class AnvilTransaction extends InventoryTransaction {
 		if($target->equals($sacrifice, false, false)) {
 			return true;
 		}
+		$repairItem = $this->getRepairItem($target);
+		return $repairItem !== null && $sacrifice->equals($repairItem, false, false);
+	}
+
+	public function getRepairItem(Durable $target): ?Item {
 		if($target instanceof TieredTool) {
-			$material = match ($target->getTier()->id()) {
+			return match ($target->getTier()->id()) {
 				ToolTier::WOOD()->id() => VanillaBlocks::OAK_PLANKS()->asItem(),
 				ToolTier::STONE()->id() => VanillaBlocks::COBBLESTONE()->asItem(),
 				ToolTier::GOLD()->id() => VanillaItems::GOLD_INGOT(),
@@ -231,18 +290,16 @@ class AnvilTransaction extends InventoryTransaction {
 				ToolTier::DIAMOND()->id() => VanillaItems::DIAMOND(),
 				default => null
 			};
-			return $material !== null && $sacrifice->equals($material, false, false);
 		} elseif($target instanceof Armor) {
-			$material = match ($target->getId()) {
+			return match ($target->getId()) {
 				ItemIds::LEATHER_CAP, ItemIds::LEATHER_TUNIC, ItemIds::LEATHER_PANTS, ItemIds::LEATHER_BOOTS => VanillaItems::LEATHER(),
 				ItemIds::IRON_HELMET, ItemIds::IRON_CHESTPLATE, ItemIds::IRON_LEGGINGS, ItemIds::IRON_BOOTS => VanillaItems::IRON_INGOT(),
 				ItemIds::GOLD_HELMET, ItemIds::GOLD_CHESTPLATE, ItemIds::GOLD_LEGGINGS, ItemIds::GOLD_BOOTS => VanillaItems::GOLD_INGOT(),
 				ItemIds::DIAMOND_HELMET, ItemIds::DIAMOND_CHESTPLATE, ItemIds::DIAMOND_LEGGINGS, ItemIds::DIAMOND_BOOTS => VanillaItems::DIAMOND(),
 				default => null,
 			};
-			return $material !== null && $sacrifice->equals($material, false, false);
 		}
-		return false;
+		return null;
 	}
 
 	public function getRepairCost(Item $item): int {

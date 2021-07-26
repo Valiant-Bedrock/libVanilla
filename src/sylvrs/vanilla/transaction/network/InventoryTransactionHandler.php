@@ -95,16 +95,17 @@ class InventoryTransactionHandler extends PacketHandler {
 
 		try {
 			$anvilTransaction->validate();
-		} catch(TransactionValidationException) {
+		} catch(TransactionValidationException $exception) {
+			$player->getServer()->getLogger()->debug("Transaction validation exception (validate): {$exception->getMessage()}");
 			return;
 		}
 
 		try {
 			$inventoryManager->onTransactionStart($anvilTransaction);
 			$anvilTransaction->execute();
-		} catch(TransactionValidationException) {
+		} catch(TransactionValidationException $exception) {
 			$this->sync($inventoryManager);
-
+			$player->getServer()->getLogger()->debug("Transaction validation exception (execute): {$exception->getMessage()}");
 		} finally {
 			$this->session->removeAnvilTransaction();
 		}

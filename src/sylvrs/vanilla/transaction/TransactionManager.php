@@ -15,7 +15,6 @@ use sylvrs\vanilla\transaction\network\AnvilDamageHandler;
 use sylvrs\vanilla\transaction\network\FilterTextHandler;
 use sylvrs\vanilla\transaction\network\InventoryTransactionHandler;
 use sylvrs\vanilla\transaction\network\PacketHandler;
-use sylvrs\vanilla\VanillaBase;
 
 class TransactionManager {
 
@@ -104,12 +103,5 @@ class TransactionManager {
 		$this->removeAnvilTransaction();
 		$this->removeEnchantingTransaction();
 	}
-
-	public function __destruct() {
-		$this->handlers = [];
-		unset($this->player, $this->anvilTransaction, $this->enchantingTransaction, $this->handlers);
-	}
-
-
 
 }

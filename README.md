@@ -6,4 +6,4 @@ Any contributions are *greatly* appreciated. If you have a feature request, plea
 ## Current Feature Set
 - [x] Anvils
 - [x] Enchanting
-- [] Mobs
+- [ ] Mobs

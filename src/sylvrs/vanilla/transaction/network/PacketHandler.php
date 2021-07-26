@@ -26,8 +26,4 @@ abstract class PacketHandler {
 	 */
 	public abstract function handle(ServerboundPacket $packet): bool;
 
-	public function __destruct() {
-		unset($this->className, $this->session);
-	}
-
 }

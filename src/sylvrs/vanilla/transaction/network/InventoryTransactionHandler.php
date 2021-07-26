@@ -95,8 +95,7 @@ class InventoryTransactionHandler extends PacketHandler {
 
 		try {
 			$anvilTransaction->validate();
-		} catch(TransactionValidationException $exception) {
-			$player->getServer()->getLogger()->debug("Transaction validation exception (validate): {$exception->getMessage()}");
+		} catch(TransactionValidationException) {
 			return;
 		}
 

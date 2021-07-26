@@ -61,7 +61,6 @@ class EnchantmentManager {
 
 		$blockFactory->register(new Anvil(new BID(Ids::ANVIL, 0), "Anvil", new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel(), 6000.0)), true);
 		$blockFactory->register(new EnchantingTable(new BID(Ids::ENCHANTING_TABLE, 0, null, TileEnchantingTable::class), "Enchanting Table", new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel(), 6000.0)), true);
-		ItemFactory::getInstance()->register(new EnchantedBook, true);
 
 		/** Registration provided by @DrewDoesLife */
 		foreach (self::ENCHANTMENT_LIST as $id => $info) {

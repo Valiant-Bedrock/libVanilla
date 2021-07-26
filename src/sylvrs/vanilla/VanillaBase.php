@@ -5,6 +5,7 @@ namespace sylvrs\vanilla;
 
 
 use pocketmine\plugin\PluginBase;
+use sylvrs\vanilla\item\CustomItemFactory;
 use sylvrs\vanilla\item\enchantment\EnchantmentManager;
 use sylvrs\vanilla\session\SessionCreationListener;
 use sylvrs\vanilla\session\SessionManager;
@@ -18,6 +19,7 @@ class VanillaBase extends PluginBase {
 
 	protected function onLoad(): void {
 		self::$instance = $this;
+		CustomItemFactory::load();
 		EnchantmentManager::load();
 	}
 

@@ -5,26 +5,12 @@ namespace sylvrs\vanilla\item\enchantment;
 
 
 use JetBrains\PhpStorm\Pure;
-use pocketmine\block\Block;
-use pocketmine\block\BlockBreakInfo;
-use pocketmine\block\BlockFactory;
-use pocketmine\block\BlockIdentifier as BID;
-use pocketmine\block\BlockLegacyIds as Ids;
-use pocketmine\block\BlockToolType;
-use pocketmine\block\tile\EnchantTable as TileEnchantingTable;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use pocketmine\data\bedrock\EnchantmentIds;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\ItemFlags;
 use pocketmine\item\enchantment\Rarity;
 use pocketmine\item\enchantment\VanillaEnchantments;
-use pocketmine\item\ItemFactory;
-use pocketmine\item\LegacyStringToItemParser;
-use pocketmine\item\ToolTier;
-use sylvrs\vanilla\block\Anvil;
-use sylvrs\vanilla\block\EnchantingTable;
-use sylvrs\vanilla\item\EnchantedBook;
-use sylvrs\vanilla\VanillaBase;
 
 class EnchantmentManager {
 
@@ -56,12 +42,6 @@ class EnchantmentManager {
 
 	public static function load(): void {
 		self::addBlacklisted(VanillaEnchantments::KNOCKBACK()); // TODO: Load from configuration
-
-		$blockFactory = BlockFactory::getInstance();
-
-		$blockFactory->register(new Anvil(new BID(Ids::ANVIL, 0), "Anvil", new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel(), 6000.0)), true);
-		$blockFactory->register(new EnchantingTable(new BID(Ids::ENCHANTING_TABLE, 0, null, TileEnchantingTable::class), "Enchanting Table", new BlockBreakInfo(5.0, BlockToolType::PICKAXE, ToolTier::WOOD()->getHarvestLevel(), 6000.0)), true);
-
 		/** Registration provided by @DrewDoesLife */
 		foreach (self::ENCHANTMENT_LIST as $id => $info) {
 			EnchantmentIdMap::getInstance()->register($id, new Enchantment(1000 - $id, ...$info));

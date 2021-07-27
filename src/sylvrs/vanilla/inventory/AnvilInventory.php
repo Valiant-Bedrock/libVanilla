@@ -46,7 +46,7 @@ class AnvilInventory extends \pocketmine\block\inventory\AnvilInventory implemen
 	public function onSuccess(Player $player): void {
 		$anvil = $player->getWorld()->getBlock($this->getHolder());
 		if($anvil instanceof Anvil) {
-			$anvil->use();
+			$anvil->onUse();
 		}
 	}
 }

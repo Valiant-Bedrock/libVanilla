@@ -22,7 +22,7 @@ class Anvil extends \pocketmine\block\Anvil {
 		return true;
 	}
 
-	public function use(): void {
+	public function onUse(): void {
 		$pos = $this->getPos();
 		$pos->getWorld()->addSound($this->getPos(), new AnvilUseSound);
 

@@ -18,7 +18,9 @@ class Anvil extends \pocketmine\block\Anvil {
 	public const DAMAGE_CHANCE = 12;
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		$player->setCurrentWindow(new AnvilInventory($this->pos));
+		if($player instanceof Player) {
+			$player->setCurrentWindow(new AnvilInventory($this->pos));
+		}
 		return true;
 	}
 

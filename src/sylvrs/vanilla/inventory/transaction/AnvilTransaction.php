@@ -48,6 +48,41 @@ class AnvilTransaction extends InventoryTransaction {
 		parent::__construct($source, $actions);
 	}
 
+	public function validate(): void {
+		$this->squashDuplicateSlotChanges();
+
+		if(count($this->actions) < 3) {
+			throw new TransactionValidationException("Transaction must have at least three actions to be executable");
+		}
+
+		$haveItems = [];
+		$needItems = [];
+		$this->matchItems($needItems, $haveItems);
+		$this->updateItems();
+		if(!$this->hasTarget()) {
+			throw new TransactionValidationException("Missing target item for transaction");
+		}
+		$this->checkResult();
+	}
+
+	public function updateItems(): void {
+		foreach($this->actions as $action) {
+			if($action instanceof SlotChangeAction && $action->getInventory() instanceof AnvilInventory && !$action->getTargetItem()->isNull()) {
+				switch($action->getSlot()) {
+					case AnvilInventory::TARGET:
+						$this->setTarget($action->getTargetItem());
+						break;
+					case AnvilInventory::SACRIFICE:
+						$this->setSacrifice($action->getTargetItem());
+						break;
+					default:
+						// uh, oh. this shouldn't happen
+						throw new TransactionValidationException("Invalid slot ({$action->getSlot()}) supplied to anvil transaction");
+				}
+			}
+		}
+	}
+
 	public function getName(): string {
 		return $this->name;
 	}
@@ -114,75 +149,6 @@ class AnvilTransaction extends InventoryTransaction {
 		$item->getNamedTag()->setInt(self::USES_TAG, $uses);
 	}
 
-	public function validate(): void {
-		$this->squashDuplicateSlotChanges();
-
-		if(count($this->actions) < 3) {
-			throw new TransactionValidationException("Transaction must have at least three actions to be executable");
-		}
-
-		$haveItems = [];
-		$needItems = [];
-		$this->matchItems($needItems, $haveItems);
-		$this->updateItems();
-		if(!$this->hasTarget()) {
-			throw new TransactionValidationException("Missing target item for transaction");
-		}
-		$this->checkResult();
-	}
-
-	public function updateItems(): void {
-		foreach($this->actions as $action) {
-			if($action instanceof SlotChangeAction && $action->getInventory() instanceof AnvilInventory && !$action->getTargetItem()->isNull()) {
-				switch($action->getSlot()) {
-					case AnvilInventory::TARGET:
-						$this->setTarget($action->getTargetItem());
-						break;
-					case AnvilInventory::SACRIFICE:
-						$this->setSacrifice($action->getTargetItem());
-						break;
-					default:
-						// uh, oh. this shouldn't happen
-						throw new TransactionValidationException("Invalid slot ({$action->getSlot()}) supplied to anvil transaction");
-				}
-			}
-		}
-	}
-
-	/**
-	 * Anvil Calculations:
-	 * RepairCost = 2^x - 1, where x is Uses
-	 * Uses = log(x + 1) / log(2), where x is RepairCost
-	 *
-	 * If the player is in survival, the max cost of an anvil is 39 levels.
-	 * Otherwise, it's not capped.
-	 *
-	 * Renaming *always* costs one level.
-	 */
-	public function calculateTransactionCost(Item $target, ?Item $sacrifice = null): int {
-		$targetUses = $this->getUses($target);
-		$cost = (2 ** $targetUses) - 1;
-		if($sacrifice !== null) {
-			if($target instanceof Durable) {
-				if($sacrifice instanceof Durable) {
-					$sacrificeUses = $this->getUses($sacrifice);
-					$cost += (2 ** $sacrificeUses) - 1;
-				}
-				if($this->shouldRepair($target, $sacrifice)) {
-					$cost += 2;
-				}
-			}
-		}
-		if($this->name !== "") {
-			$cost += 1;
-		}
-		return $cost;
-	}
-
-	public function calculateRepairCost(int $uses): int {
-		return (2 ** $uses) - 1;
-	}
-
 	public function checkResult(): void {
 		if(!$this->hasResult()) {
 			throw new TransactionValidationException("Transaction has no pending result");
@@ -205,7 +171,7 @@ class AnvilTransaction extends InventoryTransaction {
 			if($output instanceof Durable) {
 				$output->setDamage($this->calculateDurability($output, $sacrifice));
 			}
-			if($sacrifice->equals($output, false, false) || ($sacrifice->getId() === ItemIds::ENCHANTED_BOOK)) {
+			if($sacrifice->equals($output, false, false) || ($sacrifice->equals(CustomItems::ENCHANTED_BOOK(), true, false))) {
 				if($sacrifice->hasEnchantments()) {
 					foreach($sacrifice->getEnchantments() as $sacrificeEnchantment) {
 						$type = $sacrificeEnchantment->getType();
@@ -227,8 +193,7 @@ class AnvilTransaction extends InventoryTransaction {
 		}
 		$uses += 1;
 		$this->setUses($output, $uses);
-		$cost = $this->calculateRepairCost($uses);
-		$this->setRepairCost($output, $cost);
+		$this->setRepairCost($output, $this->calculateRepairCost($uses));
 		return $output;
 	}
 
@@ -262,7 +227,7 @@ class AnvilTransaction extends InventoryTransaction {
 	 */
 	public function canApply(Item $target, Enchantment $enchantment): bool {
 		if($target instanceof EnchantedBook) {
-			// books can have all enchants applied
+			// Enchanted books can have all enchants applied
 			return true;
 		} elseif($target instanceof Armor) {
 			$flag = match ($target->getArmorSlot()) {
@@ -284,6 +249,40 @@ class AnvilTransaction extends InventoryTransaction {
 			return $enchantment->hasPrimaryItemType($flag);
 		}
 		return false;
+	}
+
+	/**
+	 * Anvil Calculations:
+	 * RepairCost = 2^x - 1, where x is Uses
+	 * Uses = log(x + 1) / log(2), where x is RepairCost
+	 *
+	 * If the player is in survival, the max cost of an anvil is 39 levels.
+	 * Otherwise, it's not capped.
+	 *
+	 * Renaming *always* costs one level.
+	 */
+	public function calculateTransactionCost(Item $target, ?Item $sacrifice = null): int {
+		$targetUses = $this->getUses($target);
+		$cost = $this->calculateRepairCost($targetUses);
+		if($sacrifice !== null) {
+			if($target instanceof Durable) {
+				if($sacrifice instanceof Durable) {
+					$sacrificeUses = $this->getUses($sacrifice);
+					$cost += $this->calculateRepairCost($sacrificeUses);
+				}
+				if($this->shouldRepair($target, $sacrifice)) {
+					$cost += 2;
+				}
+			}
+		}
+		if($this->name !== "") {
+			$cost += 1;
+		}
+		return $cost;
+	}
+
+	public function calculateRepairCost(int $uses): int {
+		return (2 ** $uses) - 1;
 	}
 
 	public function shouldRepair(Durable $target, Item $sacrifice): bool {

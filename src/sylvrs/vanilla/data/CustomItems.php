@@ -9,7 +9,6 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\item\ItemIds;
 use pocketmine\utils\CloningRegistryTrait;
-use pocketmine\utils\RegistryUtils;
 use sylvrs\vanilla\item\EnchantedBook;
 
 /**
@@ -44,6 +43,5 @@ final class CustomItems {
 		$factory = ItemFactory::getInstance();
 		self::register("enchanted_book", $factory->get(ItemIds::ENCHANTED_BOOK));
 		self::register("phantom_membrane", $factory->get(ItemIds::PHANTOM_MEMBRANE));
-		echo RegistryUtils::_generateMethodAnnotations(self::class, self::getAll()) . "\n";
 	}
 }

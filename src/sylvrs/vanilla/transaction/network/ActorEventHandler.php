@@ -26,9 +26,8 @@ class ActorEventHandler extends PacketHandler {
 				if($serverCost !== -1 && $serverCost !== $clientCost) {
 					VanillaBase::getInstance()->getLogger()->debug("Discrepancy in anvil transaction costs: [Server => $serverCost, Client => $clientCost]");
 				}
-			} else {
-				// we don't really have to do anything right now
 			}
+			// we don't really have to do anything right now
 			return true;
 		}
 		return false;

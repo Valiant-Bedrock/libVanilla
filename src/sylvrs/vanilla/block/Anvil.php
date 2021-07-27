@@ -14,7 +14,7 @@ use sylvrs\vanilla\inventory\AnvilInventory;
 
 class Anvil extends \pocketmine\block\Anvil {
 
-	/** The percentage that the anvil has to be damaged */
+	/** The percentage chance that the anvil will be damaged on use */
 	public const DAMAGE_CHANCE = 12;
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null): bool {

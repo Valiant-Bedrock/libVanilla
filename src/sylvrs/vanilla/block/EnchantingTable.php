@@ -13,7 +13,9 @@ class EnchantingTable extends \pocketmine\block\EnchantingTable {
 
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		$player->setCurrentWindow(new EnchantInventory($this->pos));
+		if($player instanceof Player) {
+			$player->setCurrentWindow(new EnchantInventory($this->pos));
+		}
 		return true;
 	}
 

@@ -212,9 +212,13 @@ class AnvilTransaction extends InventoryTransaction {
 	}
 
 	public function isCompatible(Item $target, Enchantment $enchantment): bool {
-		foreach($target->getEnchantments() as $targetEnchantment) {
-			if(IncompatibleEnchantMap::isIncompatible($targetEnchantment->getType(), $enchantment)) {
-				return false;
+		if($target->equals(CustomItems::ENCHANTED_BOOK(), false, false)) {
+			return true;
+		} else {
+			foreach($target->getEnchantments() as $targetEnchantment) {
+				if (IncompatibleEnchantMap::isIncompatible($targetEnchantment->getType(), $enchantment)) {
+					return false;
+				}
 			}
 		}
 		return true;

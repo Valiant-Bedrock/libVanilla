@@ -33,7 +33,7 @@ class EnchantmentManager {
 		EnchantmentIds::SMITE => ["%enchantment.damage.undead", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
 		EnchantmentIds::BANE_OF_ARTHROPODS => ["%enchantment.damage.arthropods", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
 		EnchantmentIds::LOOTING => ["%enchantment.looting", Rarity::RARE, ItemFlags::SWORD, ItemFlags::NONE, 3],
-		EnchantmentIds::FORTUNE => ["%enchantment.lootBonusDigger", Rarity::RARE, ItemFlags::PICKAXE | ItemFlags::SHOVEL | ItemFlags::AXE, ItemFlags::NONE, 3],
+		EnchantmentIds::FORTUNE => ["%enchantment.lootBonusDigger", Rarity::RARE, ItemFlags::DIG, ItemFlags::NONE, 3],
 		EnchantmentIds::LUCK_OF_THE_SEA => ["%enchantment.lootBonusFishing", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
 		EnchantmentIds::LURE => ["%enchantment.fishingSpeed", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
 		EnchantmentIds::FROST_WALKER => ["%enchantment.frostwalker", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 2],

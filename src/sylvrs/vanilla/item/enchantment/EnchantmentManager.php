@@ -28,20 +28,20 @@ class EnchantmentManager {
 
 	/** Registration info provided by @DrewDoesLife */
 	public const ENCHANTMENT_LIST = [
-		EnchantmentIds::DEPTH_STRIDER => ["Depth Strider", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 3],
-		EnchantmentIds::AQUA_AFFINITY => ["Aqua Affinity", Rarity::RARE, ItemFlags::HEAD, ItemFlags::NONE, 1],
-		EnchantmentIds::SMITE => ["Smite", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
-		EnchantmentIds::BANE_OF_ARTHROPODS => ["Bane of Arthropods", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
+		EnchantmentIds::DEPTH_STRIDER => ["%enchantment.waterWalker", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 3],
+		EnchantmentIds::AQUA_AFFINITY => ["%enchantment.waterWorker", Rarity::RARE, ItemFlags::HEAD, ItemFlags::NONE, 1],
+		EnchantmentIds::SMITE => ["%enchantment.damage.undead", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
+		EnchantmentIds::BANE_OF_ARTHROPODS => ["%enchantment.damage.arthropods", Rarity::COMMON, ItemFlags::SWORD, ItemFlags::AXE, 5],
 		EnchantmentIds::LOOTING => ["%enchantment.looting", Rarity::RARE, ItemFlags::SWORD, ItemFlags::NONE, 3],
-		EnchantmentIds::FORTUNE => ["Fortune", Rarity::RARE, ItemFlags::PICKAXE | ItemFlags::SHOVEL | ItemFlags::AXE, ItemFlags::NONE, 3],
-		EnchantmentIds::LUCK_OF_THE_SEA => ["Luck of the Sea", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
-		EnchantmentIds::LURE => ["Lure", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
-		EnchantmentIds::FROST_WALKER => ["Frost Walker", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 2],
-		EnchantmentIds::SOUL_SPEED => ["Soul Speed", Rarity::MYTHIC, ItemFlags::FEET, ItemFlags::NONE, 3],
-		EnchantmentIds::LOYALTY => ["Loyalty", Rarity::UNCOMMON, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
-		EnchantmentIds::CHANNELING => ["Channeling", Rarity::MYTHIC, ItemFlags::TRIDENT, ItemFlags::NONE, 1],
-		EnchantmentIds::RIPTIDE => ["Riptide", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
-		EnchantmentIds::IMPALING => ["Impaling", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 5]
+		EnchantmentIds::FORTUNE => ["%enchantment.lootBonusDigger", Rarity::RARE, ItemFlags::PICKAXE | ItemFlags::SHOVEL | ItemFlags::AXE, ItemFlags::NONE, 3],
+		EnchantmentIds::LUCK_OF_THE_SEA => ["%enchantment.lootBonusFishing", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
+		EnchantmentIds::LURE => ["%enchantment.fishingSpeed", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
+		EnchantmentIds::FROST_WALKER => ["%enchantment.frostwalker", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 2],
+		EnchantmentIds::SOUL_SPEED => ["%enchantment.soul_speed", Rarity::MYTHIC, ItemFlags::FEET, ItemFlags::NONE, 3],
+		EnchantmentIds::LOYALTY => ["%enchantment.tridentLoyalty", Rarity::UNCOMMON, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
+		EnchantmentIds::CHANNELING => ["%enchantment.tridentChanneling", Rarity::MYTHIC, ItemFlags::TRIDENT, ItemFlags::NONE, 1],
+		EnchantmentIds::RIPTIDE => ["%enchantment.tridentRiptide", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
+		EnchantmentIds::IMPALING => ["%enchantment.tridentImpaling", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 5]
 	];
 
 	public static function load(): void {

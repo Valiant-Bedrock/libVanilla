@@ -41,7 +41,12 @@ class EnchantmentManager {
 		EnchantmentIds::LOYALTY => ["%enchantment.tridentLoyalty", Rarity::UNCOMMON, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
 		EnchantmentIds::CHANNELING => ["%enchantment.tridentChanneling", Rarity::MYTHIC, ItemFlags::TRIDENT, ItemFlags::NONE, 1],
 		EnchantmentIds::RIPTIDE => ["%enchantment.tridentRiptide", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
-		EnchantmentIds::IMPALING => ["%enchantment.tridentImpaling", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 5]
+		EnchantmentIds::IMPALING => ["%enchantment.tridentImpaling", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 5],
+		// TODO: Ask Dylan to add an item flag for crossbows (0x10000?)
+		EnchantmentIds::MULTISHOT => ["%enchantment.crossbowMultishot", Rarity::RARE, ItemFlags::NONE, ItemFlags::NONE, 1],
+		EnchantmentIds::PIERCING => ["%enchantment.crossbowPiercing", Rarity::COMMON, ItemFlags::NONE, ItemFlags::NONE, 4],
+		EnchantmentIds::QUICK_CHARGE => ["%enchantment.crossbowQuickCharge", Rarity::UNCOMMON, ItemFlags::NONE, ItemFlags::NONE, 3],
+		EnchantmentIds::BINDING => ["%enchantment.curse.binding", Rarity::MYTHIC, ItemFlags::NONE, ItemFlags::ARMOR | ItemFlags::ELYTRA, 1]
 	];
 
 	public static function load(): void {

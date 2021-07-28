@@ -26,7 +26,7 @@ class EnchantmentManager {
 	/** @var Enchantment[] */
 	private static array $BLACKLISTED_ENCHANTS = [];
 
-	/** @var array[] */
+	/** Registration info provided by @DrewDoesLife */
 	public const ENCHANTMENT_LIST = [
 		EnchantmentIds::DEPTH_STRIDER => ["Depth Strider", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 3],
 		EnchantmentIds::AQUA_AFFINITY => ["Aqua Affinity", Rarity::RARE, ItemFlags::HEAD, ItemFlags::NONE, 1],
@@ -37,12 +37,15 @@ class EnchantmentManager {
 		EnchantmentIds::LUCK_OF_THE_SEA => ["Luck of the Sea", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
 		EnchantmentIds::LURE => ["Lure", Rarity::RARE, ItemFlags::FISHING_ROD, ItemFlags::NONE, 3],
 		EnchantmentIds::FROST_WALKER => ["Frost Walker", Rarity::RARE, ItemFlags::FEET, ItemFlags::NONE, 2],
-		EnchantmentIds::SOUL_SPEED => ["Soul Speed", Rarity::MYTHIC, ItemFlags::FEET, ItemFlags::NONE, 3]
+		EnchantmentIds::SOUL_SPEED => ["Soul Speed", Rarity::MYTHIC, ItemFlags::FEET, ItemFlags::NONE, 3],
+		EnchantmentIds::LOYALTY => ["Loyalty", Rarity::UNCOMMON, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
+		EnchantmentIds::CHANNELING => ["Channeling", Rarity::MYTHIC, ItemFlags::TRIDENT, ItemFlags::NONE, 1],
+		EnchantmentIds::RIPTIDE => ["Riptide", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 3],
+		EnchantmentIds::IMPALING => ["Impaling", Rarity::RARE, ItemFlags::TRIDENT, ItemFlags::NONE, 5]
 	];
 
 	public static function load(): void {
 		self::addBlacklisted(VanillaEnchantments::KNOCKBACK()); // TODO: Load from configuration
-		/** Registration provided by @DrewDoesLife */
 		foreach (self::ENCHANTMENT_LIST as $id => $info) {
 			EnchantmentIdMap::getInstance()->register($id, new Enchantment(1000 - $id, ...$info));
 		}

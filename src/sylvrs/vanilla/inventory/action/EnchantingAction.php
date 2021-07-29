@@ -9,10 +9,10 @@ use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\Item;
-use pocketmine\item\ItemIds;
 use pocketmine\item\VanillaItems;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
 use pocketmine\player\Player;
+use sylvrs\vanilla\data\CustomItems;
 use sylvrs\vanilla\inventory\EnchantInventory;
 use sylvrs\vanilla\item\enchantment\EnchantmentManager;
 use sylvrs\vanilla\VanillaBase;
@@ -66,7 +66,7 @@ class EnchantingAction extends InventoryAction {
 	}
 
 	public function isBook(Item $targetItem): bool {
-		return $targetItem->equals(VanillaItems::BOOK()) || $targetItem->getId() === ItemIds::ENCHANTED_BOOK; // no VanillaItems::ENCHANTED_BOOK() :(
+		return $targetItem->equals(VanillaItems::BOOK()) || $targetItem->equals(CustomItems::ENCHANTED_BOOK());
 	}
 
 	/**

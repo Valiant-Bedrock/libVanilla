@@ -51,8 +51,8 @@ class AnvilTransaction extends InventoryTransaction {
 	public function validate(): void {
 		$this->squashDuplicateSlotChanges();
 
-		if(count($this->actions) < 3) {
-			throw new TransactionValidationException("Transaction must have at least three actions to be executable");
+		if(count($this->actions) < 2) {
+			throw new TransactionValidationException("Transaction must have at least two actions to be executable");
 		}
 
 		$haveItems = [];

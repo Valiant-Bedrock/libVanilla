@@ -1,0 +1,20 @@
+{
+  "name": "valiant-bedrock/lib-vanilla",
+  "description": "A small plugin to pmmp/pocketmine-mp to further vanilla functionality",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "sylvrs\\vanilla\\": "src/sylvrs/vanilla"
+    }
+  },
+  "authors": [
+    {
+      "name": "Matthew Jordan",
+      "email": "matt@valiantnetwork.xyz"
+    }
+  ],
+  "require": {
+    "php": "^8.0"
+  }
+}

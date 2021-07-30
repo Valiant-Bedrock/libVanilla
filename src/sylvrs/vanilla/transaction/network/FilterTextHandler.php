@@ -14,12 +14,15 @@ class FilterTextHandler extends PacketHandler {
 		parent::__construct(FilterTextPacket::class, $session);
 	}
 
-	public function handle(ServerboundPacket|FilterTextPacket $packet): bool {
-		if(!$this->session->hasAnvilTransaction()) {
-			return false;
+	public function handle(ServerboundPacket $packet): bool {
+		if($packet instanceof FilterTextPacket) {
+			if(!$this->session->hasAnvilTransaction()) {
+				return false;
+			}
+			$this->session->getPlayer()->getNetworkSession()->sendDataPacket(FilterTextPacket::create($packet->getText(), true));
+			$this->session->getAnvilTransaction()->setName($packet->getText());
+			return true;
 		}
-		$this->session->getPlayer()->getNetworkSession()->sendDataPacket(FilterTextPacket::create($packet->getText(), true));
-		$this->session->getAnvilTransaction()->setName($packet->getText());
-		return true;
+		return false;
 	}
 }

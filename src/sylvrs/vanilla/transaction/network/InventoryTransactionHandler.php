@@ -29,33 +29,35 @@ class InventoryTransactionHandler extends PacketHandler {
 	public function __construct(TransactionManager $session) {
 		parent::__construct(InventoryTransactionPacket::class, $session);
 	}
-	public function handle(ServerboundPacket|InventoryTransactionPacket $packet): bool {
-		$player = $this->session->getPlayer();
-		if($player->getCurrentWindow() === null) {
-			return false;
-		}
-		$isAnvil = false;
-		$isEnchanting = false;
-		$actions = [];
+	public function handle(ServerboundPacket $packet): bool {
+		if($packet instanceof InventoryTransactionPacket) {
+			$player = $this->session->getPlayer();
+			if($player->getCurrentWindow() === null) {
+				return false;
+			}
+			$isAnvil = false;
+			$isEnchanting = false;
+			$actions = [];
 
-		foreach($packet->trData->getActions() as $action) {
-			if($this->isFromEnchantingTable($action)) {
-				$isEnchanting = true;
-			} elseif($this->isFromAnvil($action)) {
-				$isAnvil = true;
-			} else {
-				throw new AssumptionFailedError("Only anvils and enchantment tables should be processed");
+			foreach($packet->trData->getActions() as $action) {
+				if($this->isFromEnchantingTable($action)) {
+					$isEnchanting = true;
+				} elseif($this->isFromAnvil($action)) {
+					$isAnvil = true;
+				} else {
+					throw new AssumptionFailedError("Only anvils and enchantment tables should be processed");
+				}
+				if(($action = $this->createInventoryAction($action)) !== null) {
+					$actions[] = $action;
+				}
 			}
-			if(($action = $this->createInventoryAction($action)) !== null) {
-				$actions[] = $action;
+			if($isAnvil) {
+				$this->handleAnvil($actions);
+				return true;
+			} elseif($isEnchanting) {
+				// TODO: Let's make sure enchanting also handles SlotChangeActions :)
+				$this->handleEnchanting($actions);
 			}
-		}
-		if($isAnvil) {
-			$this->handleAnvil($actions);
-			return true;
-		} elseif($isEnchanting) {
-			// TODO: Let's make sure enchanting also handles SlotChangeActions :)
-			$this->handleEnchanting($actions);
 		}
 		return false;
 	}

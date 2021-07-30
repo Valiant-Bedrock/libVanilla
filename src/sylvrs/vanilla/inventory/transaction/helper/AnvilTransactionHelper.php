@@ -20,6 +20,7 @@ use pocketmine\item\TieredTool;
 use pocketmine\item\Tool;
 use pocketmine\item\ToolTier;
 use pocketmine\item\VanillaItems;
+use pocketmine\utils\AssumptionFailedError;
 use sylvrs\vanilla\data\CustomItems;
 use sylvrs\vanilla\inventory\transaction\AnvilTransaction;
 use sylvrs\vanilla\item\EnchantedBook;
@@ -48,7 +49,7 @@ trait AnvilTransactionHelper {
 			return $uses;
 		}
 		$repairCost = $this->getItemRepairCost($item);
-		$uses = log($repairCost + 1) / log(2);
+		$uses = (int) floor(log($repairCost + 1) / log(2));
 		$item->getNamedTag()->setInt(AnvilTransaction::USES_TAG, $uses);
 		return $uses;
 	}
@@ -98,8 +99,7 @@ trait AnvilTransactionHelper {
 		$durability = $target->getDamage();
 		if($material instanceof Durable && $material->equals($target, false, false)) {
 			$durability -= $material->getDamage() + (int) floor($target->getMaxDurability() * 0.12);
-
-		} else if($material->equals($this->getRepairItem($target), true, false)) {
+		} else if(($repairItem = $this->getRepairItem($target)) instanceof Item && $material->equals($repairItem, true, false)) {
 			$reductionValue = (int) floor($target->getMaxDurability() * 0.25);
 			$count = $material->getCount();
 			while($count-- > 0) {
@@ -146,7 +146,8 @@ trait AnvilTransactionHelper {
 				ArmorInventory::SLOT_HEAD => ItemFlags::HEAD,
 				ArmorInventory::SLOT_CHEST => ItemFlags::TORSO,
 				ArmorInventory::SLOT_LEGS => ItemFlags::LEGS,
-				ArmorInventory::SLOT_FEET => ItemFlags::FEET
+				ArmorInventory::SLOT_FEET => ItemFlags::FEET,
+				default => throw new AssumptionFailedError("Invalid armor slot provided")
 			};
 			return $enchantment->hasPrimaryItemType($flag);
 		} elseif($target instanceof Sword) {

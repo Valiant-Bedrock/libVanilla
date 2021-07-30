@@ -1,7 +1,7 @@
 {
   "name": "valiant-bedrock/lib-vanilla",
   "description": "A small plugin to pmmp/pocketmine-mp to further vanilla functionality",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
   "license": "proprietary",
   "autoload": {
     "psr-4": {
@@ -16,5 +16,10 @@
   ],
   "require": {
     "php": "^8.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^0.12.93",
+    "pocketmine/pocketmine-mp": "dev-master",
+    "jetbrains/phpstorm-attributes": "dev-master"
   }
 }

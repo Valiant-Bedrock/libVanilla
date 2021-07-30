@@ -23,7 +23,13 @@ class EnchantmentManager {
 	/** @var int */
 	public const SOURCE_TYPE_ANVIL_MATERIAL = -11;
 
-	/** @var Enchantment[] */
+	/**
+	 * If the output of an enchantment table has a blacklisted
+	 * enchantment, the transaction will cancel itself
+	 *
+	 * @var bool[] - enchantment-name => true
+	 * @phpstan-var array<string, bool>
+	 */
 	private static array $BLACKLISTED_ENCHANTS = [];
 
 	/** Registration info provided by @DrewDoesLife */
